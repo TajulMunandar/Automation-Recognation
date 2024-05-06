@@ -10,8 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/material": "^5.15.16",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/x-data-grid": "^6.5.0",
+    "aos": "^2.3.4",
+    "axios": "^1.4.0",
+    "bootstrap": "^5.2.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-bootstrap": "^2.7.4",
+    "react-bootstrap-icons": "^1.10.3",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.2",
+    "sweetalert2": "^11.7.12"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
