@@ -1,72 +1,48 @@
 import React from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import ListSubheader from "@mui/material/ListSubheader";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import PeopleIcon from "@mui/icons-material/People";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import LayersIcon from "@mui/icons-material/Layers";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+import AudioFileIcon from "@mui/icons-material/AudioFile";
+import AudiotrackIcon from "@mui/icons-material/Audiotrack";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+
+const navLinkStyles = {
+  textDecoration: "none",
+  color: "inherit",
+  width: "100%",
+};
+
+const CustomListItem = ({ to, icon, primary }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <NavLink to={to} style={navLinkStyles}>
+      <ListItemButton selected={isActive}>
+        <ListItemIcon>{icon}</ListItemIcon>
+        <ListItemText primary={primary} />
+      </ListItemButton>
+    </NavLink>
+  );
+};
 
 export const mainListItems = (
   <>
-    <ListItemButton>
-      <ListItemIcon>
-        <DashboardIcon />
-      </ListItemIcon>
-      <ListItemText primary="Dashboard" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <ShoppingCartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Orders" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <PeopleIcon />
-      </ListItemIcon>
-      <ListItemText primary="Customers" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <BarChartIcon />
-      </ListItemIcon>
-      <ListItemText primary="Reports" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <LayersIcon />
-      </ListItemIcon>
-      <ListItemText primary="Integrations" />
-    </ListItemButton>
+    <CustomListItem
+      to="/dashboard"
+      icon={<DashboardIcon />}
+      primary="Dashboard"
+    />
+    <CustomListItem
+      to="/historys"
+      icon={<AudioFileIcon />}
+      primary="Historys"
+    />
+    <CustomListItem to="/audios" icon={<AudiotrackIcon />} primary="Audios" />
+    <CustomListItem to="/users" icon={<PeopleAltIcon />} primary="Users" />
   </>
 );
 
-export const secondaryListItems = (
-  <>
-    <ListSubheader component="div" inset>
-      Saved reports
-    </ListSubheader>
-    <ListItemButton>
-      <ListItemIcon>
-        <AssignmentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Current month" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <AssignmentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Last quarter" />
-    </ListItemButton>
-    <ListItemButton>
-      <ListItemIcon>
-        <AssignmentIcon />
-      </ListItemIcon>
-      <ListItemText primary="Year-end sale" />
-    </ListItemButton>
-  </>
-);
+export default mainListItems;
