@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
@@ -6,11 +6,10 @@ import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import useNav from "../../../../controller/logout";
+import { Nav } from "react-bootstrap";
 
 export default function AccountMenu() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -22,6 +21,13 @@ export default function AccountMenu() {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const { name, handleLogout } = useNav();
+
+  const getInitial = (name) => {
+    if (!name) return "";
+    return name.charAt(0).toUpperCase();
   };
 
   return (
@@ -36,7 +42,7 @@ export default function AccountMenu() {
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+            <Avatar sx={{ width: 32, height: 32 }}>{getInitial(name)}</Avatar>
           </IconButton>
         </Tooltip>
       </Box>
@@ -83,7 +89,10 @@ export default function AccountMenu() {
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          Logout
+          <Nav.Link onClick={handleLogout} className="dropdown-item">
+            <i className="fa-regular dropdown-item-icon fa-arrow-right-from-bracket me-1 fa-fw"></i>
+            Logout
+          </Nav.Link>
         </MenuItem>
       </Menu>
     </>

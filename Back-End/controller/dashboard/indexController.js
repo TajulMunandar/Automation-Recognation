@@ -1,4 +1,4 @@
-const User = require("../../model/user");
+const User = require("../../model/User");
 
 module.exports = {
   viewDashboard: async (req, res) => {
@@ -8,6 +8,7 @@ module.exports = {
         status: "Success",
         valid: true,
         userCount: userCount,
+        username: req.username,
       });
     } catch (error) {
       res.status(400).json({

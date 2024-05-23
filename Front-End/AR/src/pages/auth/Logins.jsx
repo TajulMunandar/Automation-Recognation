@@ -1,18 +1,32 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
+import useAuth from "../../../controller/auth";
 
 const Logins = (props) => {
+  const {
+    username,
+    setUsername,
+    password,
+    setPassword,
+    showPassword,
+    handleCheckboxChange,
+    handleLogin,
+    checkAuth,
+  } = useAuth();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
   return (
     <Container
       component="main"
@@ -40,16 +54,18 @@ const Logins = (props) => {
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <form style={{ width: "100%", marginTop: 1 }} noValidate>
+        <form style={{ width: "100%", marginTop: 1 }} onSubmit={handleLogin}>
           <TextField
             variant="outlined"
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
+            id="username"
+            label="Username"
+            name="username"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             autoFocus
           />
           <TextField
@@ -59,14 +75,21 @@ const Logins = (props) => {
             fullWidth
             name="password"
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          />
+          <div>
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={handleCheckboxChange}
+              className="me-2"
+            />
+            <label>Show Password</label>
+          </div>
           <Button
             type="submit"
             fullWidth
@@ -77,11 +100,6 @@ const Logins = (props) => {
             Sign In
           </Button>
           <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
             <Grid item>
               <Link href="#" variant="body2">
                 {"Don't have an account? Sign Up"}
@@ -93,10 +111,7 @@ const Logins = (props) => {
       <Box mt={8}>
         <Typography variant="body2" color="textSecondary" align="center">
           {"Copyright © "}
-          <Link color="inherit" href="https://mui.com/">
-            Your Website
-          </Link>{" "}
-          {new Date().getFullYear()}
+          Automation Recognation {new Date().getFullYear()}
           {"."}
         </Typography>
       </Box>
