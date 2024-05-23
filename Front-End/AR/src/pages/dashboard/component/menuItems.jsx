@@ -81,15 +81,15 @@ export default function AccountMenu() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem onClick={handleClose}>
+        <MenuItem>
           <Avatar /> Profile
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <Nav.Link onClick={handleLogout} className="dropdown-item">
+          <Nav.Link className="dropdown-item">
             <i className="fa-regular dropdown-item-icon fa-arrow-right-from-bracket me-1 fa-fw"></i>
             Logout
           </Nav.Link>

@@ -12,7 +12,7 @@ const useNav = () => {
       .get("http://localhost:3000/dashboard")
       .then((res) => {
         console.log(res.data.username);
-        if (res.data.valid && res.data.username.isAdmin == 1) {
+        if (res.data.valid) {
           setName(res.data.username.username);
         } else {
           navigate("/");

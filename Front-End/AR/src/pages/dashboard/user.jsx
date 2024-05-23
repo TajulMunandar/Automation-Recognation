@@ -26,6 +26,7 @@ import CustomAppBar from "./component/appbar";
 import CustomDrawer from "./component/drawer";
 import { Button, Form, ModalBody } from "react-bootstrap";
 import { Plus } from "react-bootstrap-icons";
+import useUser from "../../../controller/user";
 
 function Copyright(props) {
   return (
@@ -45,29 +46,9 @@ export default function Users() {
   const [open, setOpen] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const toggleDrawer = () => {
     setOpen(!open);
-  };
-
-  const handleAddClick = (row) => {
-    setSelectedRow(row);
-    setIsAddModalOpen(true);
-  };
-
-  const handleEditClick = (row) => {
-    setSelectedRow(row); // Set data baris yang dipilih
-    setIsEditModalOpen(true); // Buka modal edit
-  };
-
-  // Fungsi untuk menangani klik tombol delete
-  const handleDeleteClick = (row) => {
-    setSelectedRow(row); // Set data baris yang dipilih
-    setIsDeleteModalOpen(true); // Buka modal delete
   };
 
   const handleChangePage = (event, newPage) => {
@@ -79,21 +60,44 @@ export default function Users() {
     setPage(0);
   };
 
-  // Data dummy
-  const subData = [
-    {
-      _id: "1",
-      name: "Item 1",
-      status: "Available",
-      serialNumber: "SN123456",
-    },
-    {
-      _id: "2",
-      name: "Item 2",
-      status: "Unavailable",
-      serialNumber: "SN789012",
-    },
-  ];
+  const {
+    setIsDeleteModalOpen,
+    isDeleteModalOpen,
+    deleteUser,
+    selectedUser,
+    handleDeleteClick,
+    // delete
+    user,
+    // get
+    name,
+    setName,
+    username,
+    setUsername,
+    password,
+    setPassword,
+    addUser,
+    isAddModalOpen,
+    handleAddClick,
+    setIsAddModalOpen,
+    handleRoleChange,
+    // add
+    isEditModalOpen,
+    setIsEditModalOpen,
+    handleEditClick,
+    updateUser,
+    isAdmin,
+    setIsAdmin,
+    setSelectedUser,
+    setSelectUser,
+    selectUser,
+    editedName,
+    setEditedName,
+    editedUsername,
+    setEditedUsername,
+    editedRole,
+    setEditedRole,
+    // edit
+  } = useUser();
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -152,7 +156,7 @@ export default function Users() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {subData
+                        {user
                           .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage
@@ -166,10 +170,10 @@ export default function Users() {
                                 {row.name}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.status}
+                                {row.username}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.serialNumber}
+                                {row.isAdmin ? "Admin" : "User"}
                               </TableCell>
                               <TableCell className="text-center">
                                 <IconButton
@@ -198,7 +202,7 @@ export default function Users() {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={subData.length}
+                    count={user.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
@@ -221,20 +225,36 @@ export default function Users() {
           <Modal.Title>Edit User</Modal.Title>
         </Modal.Header>
         <ModalBody>
-          <Form>
+          <Form onSubmit={updateUser}>
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label>Name</Form.Label>
-              <Form.Control type="name" placeholder="Enter Name" />
+              <Form.Control
+                type="text"
+                placeholder="Enter Name"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label>Username</Form.Label>
-              <Form.Control type="name" placeholder="Enter username" />
+              <Form.Control
+                type="text"
+                placeholder="Enter Username"
+                value={editedUsername}
+                onChange={(e) => setEditedUsername(e.target.value)}
+              />
             </Form.Group>
 
-            <Form.Group className="mb-3" controlId="formBasicPassword">
-              <Form.Label>Password</Form.Label>
-              <Form.Control type="password" placeholder="Password" />
+            <Form.Group className="mb-3" controlId="formBasicRole">
+              <Form.Label>Role</Form.Label>
+              <Form.Select
+                value={editedRole}
+                onChange={(e) => setEditedRole(e.target.value)}
+              >
+                <option value={false}>User</option>
+                <option value={true}>Admin</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </ModalBody>
@@ -242,31 +262,38 @@ export default function Users() {
           <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>
             Close
           </Button>
-          <Button variant="warning">Edit</Button>
+          <Button variant="warning" onClick={updateUser}>
+            Edit
+          </Button>
         </Modal.Footer>
       </Modal>
       {/* End Modal Edit */}
+
       {/* Modal Hapus */}
       <Modal
         show={isDeleteModalOpen}
         onHide={() => setIsDeleteModalOpen(false)}
         centered
       >
-        <Modal.Header closeButton>
-          <Modal.Title>Delete User</Modal.Title>
-        </Modal.Header>
-        <ModalBody>
-          <p>asep</p>
-        </ModalBody>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setIsDeleteModalOpen(false)}
-          >
-            Close
-          </Button>
-          <Button variant="danger">Delete</Button>
-        </Modal.Footer>
+        <Form>
+          <Modal.Header closeButton>
+            <Modal.Title>Delete User</Modal.Title>
+          </Modal.Header>
+          <ModalBody>
+            <p>Are you sure you want to delete {selectedUser?.name}?</p>
+          </ModalBody>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Close
+            </Button>
+            <Button variant="danger" onClick={deleteUser}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
       {/* End Modal Hapus */}
 
@@ -283,17 +310,47 @@ export default function Users() {
           <Form>
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label>Name</Form.Label>
-              <Form.Control type="name" placeholder="Enter Name" />
+              <Form.Control
+                required
+                type="text"
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label>Username</Form.Label>
-              <Form.Control type="name" placeholder="Enter username" />
+              <Form.Control
+                required
+                type="text"
+                name="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formBasicPassword">
               <Form.Label>Password</Form.Label>
-              <Form.Control type="password" placeholder="Password" />
+              <Form.Control
+                required
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicRole">
+              <Form.Label>Role</Form.Label>
+              <Form.Select required name="isAdmin" onChange={handleRoleChange}>
+                <option value="">Choose Role</option>
+                <option value="false">User</option>
+                <option value="true">Admin</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </ModalBody>
@@ -301,7 +358,9 @@ export default function Users() {
           <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>
             Close
           </Button>
-          <Button variant="primary">Add</Button>
+          <Button variant="primary" onClick={addUser}>
+            Add
+          </Button>
         </Modal.Footer>
       </Modal>
     </ThemeProvider>
