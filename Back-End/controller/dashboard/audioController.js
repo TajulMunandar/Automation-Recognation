@@ -18,8 +18,9 @@ module.exports = {
   addAudio: async (req, res) => {
     try {
       const { path, transcription } = req.body;
+      const filePath = req.file.path;
       const data = {
-        path,
+        path: filePath,
         transcription,
       };
       await Audio.create(data);
@@ -37,8 +38,9 @@ module.exports = {
     try {
       const { id } = req.params;
       const { path, transcription } = req.body;
+      const filePath = req.file.path;
       const data = {
-        path,
+        path: filePath,
         transcription,
         updatedAt: new Date(),
       };

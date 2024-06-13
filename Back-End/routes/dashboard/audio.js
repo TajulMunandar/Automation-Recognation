@@ -6,9 +6,10 @@ const {
   deleteAudio,
 } = require("../../controller/dashboard/audioController");
 const routes = express.Router();
+const { upload } = require("../../middleware/multer");
 
 routes.get("/", viewAudio);
-routes.post("/", addAudio);
+routes.post("/", upload.single("file"), addAudio);
 routes.put("/:id", editAudio);
 routes.delete("/:id", deleteAudio);
 

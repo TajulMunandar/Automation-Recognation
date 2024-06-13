@@ -29,6 +29,7 @@ import CustomAppBar from "./component/appbar";
 import CustomDrawer from "./component/drawer";
 import { Button, Form, Modal, ModalBody } from "react-bootstrap";
 import { Plus } from "react-bootstrap-icons";
+import useAudio from "../../../controller/audio";
 
 function Copyright(props) {
   return (
@@ -48,10 +49,6 @@ export default function Audios() {
   const [open, setOpen] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -66,36 +63,53 @@ export default function Audios() {
     setPage(0);
   };
 
-  const handleAddClick = (row) => {
-    setSelectedRow(row);
-    setIsAddModalOpen(true);
-  };
+  const {
+    setIsDeleteModalOpen,
+    handleDeleteClick,
+    isDeleteModalOpen,
+    deleteAudio,
+    setSelectedAudio,
+    selectedAudio,
+    // delete
 
-  const handleEditClick = (row) => {
-    setSelectedRow(row);
-    setIsEditModalOpen(true);
-  };
+    audio,
+    fetchAudio,
+    // get
 
-  const handleDeleteClick = (row) => {
-    setSelectedRow(row);
-    setIsDeleteModalOpen(true);
-  };
+    path,
+    setPath,
+    transcription,
+    setTranscription,
+    isAddModalOpen,
+    handleAddClick,
+    setIsAddModalOpen,
+    setSelectedRow,
+    handleRoleChange,
+    addAudio,
+    // add
 
-  // Data dummy
-  const subData = [
-    {
-      _id: "1",
-      name: "Item 1",
-      status: "Available",
-      serialNumber: "SN123456",
-    },
-    {
-      _id: "2",
-      name: "Item 2",
-      status: "Unavailable",
-      serialNumber: "SN789012",
-    },
-  ];
+    isEditModalOpen,
+    setIsEditModalOpen,
+    handleEditClick,
+    updateAudio,
+    selectPath,
+    setSelectPath,
+    editedPath,
+    setEditedPath,
+    editedTranscription,
+    setEditedTranscription,
+    // edit
+  } = useAudio();
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData();
+    formData.append("file", path); // Append the file to the form data
+    formData.append("transcription", transcription); // Append other form fields
+
+    await addAudio(formData);
+  };
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -151,7 +165,7 @@ export default function Audios() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {subData
+                        {audio
                           .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage
@@ -162,10 +176,10 @@ export default function Audios() {
                                 {index + 1}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.name}
+                                {row.path}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.status}
+                                {row.transcription}
                               </TableCell>
                               <TableCell className="text-center">
                                 <IconButton
@@ -194,7 +208,7 @@ export default function Audios() {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={subData.length}
+                    count={audio.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
@@ -217,25 +231,34 @@ export default function Audios() {
           <Modal.Title>Edit Audio</Modal.Title>
         </Modal.Header>
         <ModalBody>
-          <Form>
-            <Form>
-              <Form.Group className="mb-3" controlId="formFIle">
-                <Form.Label>Audio</Form.Label>
-                <Form.Control type="file" />
-              </Form.Group>
+          <Form onSubmit={updateAudio}>
+            <Form.Group className="mb-3" controlId="formFIle">
+              <Form.Label>Audio</Form.Label>
+              <Form.Control
+                type="file"
+                value={editedPath}
+                onChange={(e) => setEditedPath(e.target.value)}
+              />
+            </Form.Group>
 
-              <Form.Group className="mb-3" controlId="formBasicPassword">
-                <Form.Label>Transcription</Form.Label>
-                <Form.Control type="name" placeholder="Pajoh Bu" />
-              </Form.Group>
-            </Form>
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Label>Transcription</Form.Label>
+              <Form.Control
+                type="name"
+                placeholder="...."
+                value={editedTranscription}
+                onChange={(e) => setEditedTranscription(e.target.value)}
+              />
+            </Form.Group>
           </Form>
         </ModalBody>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>
             Close
           </Button>
-          <Button variant="warning">Edit</Button>
+          <Button variant="warning" onClick={updateAudio}>
+            Edit
+          </Button>
         </Modal.Footer>
       </Modal>
       {/* End Modal Edit */}
@@ -249,7 +272,10 @@ export default function Audios() {
           <Modal.Title>Delete Audio</Modal.Title>
         </Modal.Header>
         <ModalBody>
-          <p>asep</p>
+          <p>
+            Are you sure you want to delete {selectedAudio?.path} -{" "}
+            {selectedAudio?.transcription}?
+          </p>
         </ModalBody>
         <Modal.Footer>
           <Button
@@ -258,7 +284,9 @@ export default function Audios() {
           >
             Close
           </Button>
-          <Button variant="danger">Delete</Button>
+          <Button variant="danger" onClick={deleteAudio}>
+            Delete
+          </Button>
         </Modal.Footer>
       </Modal>
       {/* End Modal Hapus */}
@@ -276,12 +304,23 @@ export default function Audios() {
           <Form>
             <Form.Group className="mb-3" controlId="formFIle">
               <Form.Label>Audio</Form.Label>
-              <Form.Control type="file" />
+              <Form.Control
+                type="file"
+                name="path"
+                onChange={(e) => setPath(e.target.files[0])}
+                placeholder="path"
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formBasicPassword">
               <Form.Label>Transcription</Form.Label>
-              <Form.Control type="name" placeholder="Pajoh Bu" />
+              <Form.Control
+                type="name"
+                name="transcription"
+                value={transcription}
+                placeholder="Transcription"
+                onChange={(e) => setTranscription(e.target.value)}
+              />
             </Form.Group>
           </Form>
         </ModalBody>
@@ -289,7 +328,9 @@ export default function Audios() {
           <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>
             Close
           </Button>
-          <Button variant="primary">Add</Button>
+          <Button variant="primary" onClick={handleSubmit}>
+            Add
+          </Button>
         </Modal.Footer>
       </Modal>
     </ThemeProvider>
