@@ -1,0 +1,10 @@
+librosa
+numpy
+pandas
+scikit-learn
+tensorflow
+flask
+flask-core
+requests
+
+

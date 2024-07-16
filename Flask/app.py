@@ -33,7 +33,7 @@ def predict(audio_path, model, le):
     return predicted_label
 
 # Load the trained model and label encoder
-model = load_model("best_model.keras")
+model = load_model("best_model.h5")
 le = LabelEncoder()
 
 # Load the original labels used during training

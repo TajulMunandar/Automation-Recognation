@@ -114,22 +114,23 @@ model.compile(
 )
 
 # Tambahkan early stopping dan model checkpointing
-early_stopping = EarlyStopping(
-    monitor="val_loss", patience=10, restore_best_weights=True
-)
-model_checkpoint = ModelCheckpoint("best_model.keras", save_best_only=True)
+early_stopping = EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True)
+model_checkpoint = ModelCheckpoint("best_model.h5", save_best_only=True)
 
 # Latih model
 history = model.fit(
     X_train,
     y_train,
-    epochs=100,
+    epochs=200,
     validation_data=(X_test, y_test),
     callbacks=[early_stopping, model_checkpoint],
 )
+
+# Simpan model setelah pelatihan selesai
+model.save("best_model.h5")
 
 # Evaluasi model
 loss, accuracy = model.evaluate(X_test, y_test)
 print(f"Akurasi: {accuracy}")
 
-print("Model Berhasil dilatih")
+print("Model Berhasil dilatih dan disimpan")
