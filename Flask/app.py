@@ -11,12 +11,10 @@ import subprocess
 
 app = Flask(__name__)
 
-
 # Function to load audio from file
 def load_audio(file_path):
     audio, sr = librosa.load(file_path, sr=None)
     return audio, sr
-
 
 # Function to extract features from audio
 def extract_features(audio, sr, n_fft=512):
@@ -24,7 +22,6 @@ def extract_features(audio, sr, n_fft=512):
     stft = librosa.stft(audio, n_fft=n_fft)
     feature = np.abs(stft).mean(axis=1)
     return feature
-
 
 # Function to predict label from audio file
 def predict(audio_path, model, le):
@@ -34,7 +31,6 @@ def predict(audio_path, model, le):
     prediction = model.predict(feature)
     predicted_label = le.inverse_transform([np.argmax(prediction)])[0]
     return predicted_label
-
 
 # Load the trained model and label encoder
 model = load_model("best_model.keras")
