@@ -14,6 +14,7 @@ const AutomationRecognitionPage = () => {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const [predictedLabel, setPredictedLabel] = useState(null);
 
   const audioMap = {
     abee: "../assets/audio/abee_andra.wav",
@@ -49,32 +50,56 @@ const AutomationRecognitionPage = () => {
             chunksRef.current.push(e.data);
           };
           mediaRecorderRef.current.onstop = () => {
-            const blob = new Blob(chunksRef.current, { type: "audio/wav" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.style.display = "none";
-            a.href = url;
-            a.download = "recorded.wav";
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            setIsRecording(false);
-            toast.success("Rekaman berhasil! ✔️", {
-              position: "top-right",
-              autoClose: 2000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
+            const recordedBlob = new Blob(chunksRef.current, {
+              type: "audio/wav", // Sesuaikan dengan format yang benar
             });
+
+            console.log(recordedBlob);
+
+            const formData = new FormData();
+            formData.append("file", recordedBlob, "recorded.wav"); // Tambahkan Blob ke FormData
+
+            fetch("http://127.0.0.1:5000/predict", {
+              method: "POST",
+              body: formData,
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                console.log("Predicted Label:", data.predicted_label);
+                setPredictedLabel(data.predicted_label);
+                toast.success("Rekaman berhasil! ✔️", {
+                  position: "top-right",
+                  autoClose: 2000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                });
+              })
+              .catch((error) => {
+                console.error("Prediction failed:", error);
+                toast.error("Gagal melakukan prediksi! ❌", {
+                  position: "top-right",
+                  autoClose: 2000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                });
+              })
+              .finally(() => {
+                chunksRef.current = [];
+                setIsRecording(false);
+              });
           };
-          mediaRecorderRef.current.start();
-          setIsRecording(true);
+          mediaRecorderRef.current.start(); // Mulai merekam
+          setIsRecording(true); // Set status recording menjadi true
         })
         .catch((error) => {
-          console.error("Error accessing microphone:", error);
-          toast.error("Terjadi kesalahan saat merekam! ❌", {
+          console.error("Gagal merekam:", error);
+          toast.error("Gagal merekam audio! ❌", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -150,11 +175,14 @@ const AutomationRecognitionPage = () => {
             Next
           </button>
         </div>
-
         <div className="row mt-5 pt-5">
-          <div className="col-md-6 offset-md-3">
+          <div className="text-center col-md-6 offset-md-3">
+            <h3 className="">
+              Hasil:{" "}
+              <span className="badge bg-dark  p-2 ">{predictedLabel}</span>
+            </h3>
             <p className="text-center mb-4">
-              Tekan tombol di bawah untuk merekam suara Anda:
+              Tekan tombol di bawah untuk merekam suara Anda
             </p>
             <div className="row">
               <div className="col text-center">
