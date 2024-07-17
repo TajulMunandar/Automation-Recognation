@@ -7,6 +7,7 @@ import os
 import numpy as np
 import subprocess
 import librosa
+from confluent_kafka import Producer, Consumer, KafkaError
 
 app = Flask(__name__)
 CORS(app)
@@ -17,12 +18,22 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# Konfigurasi Kafka
+KAFKA_BROKER = 'localhost:9092'
+KAFKA_TOPIC = 'audio-recordings'
+
+# Buat Kafka Producer
+producer = Producer({'bootstrap.servers': KAFKA_BROKER})
+
+# Fungsi untuk mengirim pesan ke Kafka
+def send_to_kafka(topic, message):
+    producer.produce(topic, message)
+    producer.flush()
 
 # Function untuk muat audio dari file menggunakan wave
 def load_audio(file_path):
     audio, sr = librosa.load(file_path, sr=None)
     return audio, sr
-
 
 # Function untuk ekstrak fitur dari audio
 def extract_features(audio, sr, n_fft=512):
@@ -77,6 +88,11 @@ def predict_audio():
         temp_file_path = os.path.join(app.config["UPLOAD_FOLDER"], "recorded.wav")
         file.save(temp_file_path)
         print("File saved:", temp_file_path)
+
+        # Kirim data audio ke Kafka
+        with open(temp_file_path, 'rb') as audio_file:
+            audio_data = audio_file.read()
+        send_to_kafka(KAFKA_TOPIC, audio_data)
 
         predicted_label = predict(temp_file_path, model, le)
         print("Predicted label:", predicted_label)
