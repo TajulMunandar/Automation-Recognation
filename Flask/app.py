@@ -60,12 +60,8 @@ def train_model():
 # Endpoint untuk memprediksi label dari file audio yang diunggah
 @app.route("/predict", methods=["get"])
 def predict_audio():
-    # if "file" not in request.files:
-    #     return jsonify({"error": "No file part"}), 400
-
-    # file = request.files["file"]
+    
     audio_path = "./content/dataset/suum/suum_andra.wav"
-    # file.save(audio_path)
 
     try:
         predicted_label = predict(audio_path, model, le)
