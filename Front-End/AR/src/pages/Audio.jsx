@@ -10,7 +10,7 @@ import "../assets/main.css";
 import Slider from "react-slick";
 
 const AutomationRecognitionPage = () => {
-  const sliderRef = useRef(null); // Ref untuk mengakses Slider
+  const sliderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -51,13 +51,11 @@ const AutomationRecognitionPage = () => {
           };
           mediaRecorderRef.current.onstop = () => {
             const recordedBlob = new Blob(chunksRef.current, {
-              type: "audio/wav", // Sesuaikan dengan format yang benar
+              type: "audio/wav",
             });
 
-            console.log(recordedBlob);
-
             const formData = new FormData();
-            formData.append("file", recordedBlob, "recorded.wav"); // Tambahkan Blob ke FormData
+            formData.append("file", recordedBlob, "recorded.wav");
 
             fetch("http://127.0.0.1:5000/predict", {
               method: "POST",
@@ -67,19 +65,32 @@ const AutomationRecognitionPage = () => {
               .then((data) => {
                 console.log("Predicted Label:", data.predicted_label);
                 setPredictedLabel(data.predicted_label);
-                toast.success("Rekaman berhasil! ✔️", {
-                  position: "top-right",
-                  autoClose: 2000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                });
+
+                if (data.anomaly_detected) {
+                  toast.error("Anomaly detected!", {
+                    position: "top-right",
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  });
+                } else {
+                  toast.success("Recording successful! ✔️", {
+                    position: "top-right",
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  });
+                }
               })
               .catch((error) => {
                 console.error("Prediction failed:", error);
-                toast.error("Gagal melakukan prediksi! ❌", {
+                toast.error("Failed to predict! ❌", {
                   position: "top-right",
                   autoClose: 2000,
                   hideProgressBar: false,
@@ -94,12 +105,12 @@ const AutomationRecognitionPage = () => {
                 setIsRecording(false);
               });
           };
-          mediaRecorderRef.current.start(); // Mulai merekam
-          setIsRecording(true); // Set status recording menjadi true
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
         })
         .catch((error) => {
-          console.error("Gagal merekam:", error);
-          toast.error("Gagal merekam audio! ❌", {
+          console.error("Recording failed:", error);
+          toast.error("Failed to record audio! ❌", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -179,7 +190,7 @@ const AutomationRecognitionPage = () => {
           <div className="text-center col-md-6 offset-md-3">
             <h3 className="">
               Hasil:{" "}
-              <span className="badge bg-dark  p-2 ">{predictedLabel}</span>
+              <span className="badge bg-dark p-2 ">{predictedLabel}</span>
             </h3>
             <p className="text-center mb-4">
               Tekan tombol di bawah untuk merekam suara Anda
