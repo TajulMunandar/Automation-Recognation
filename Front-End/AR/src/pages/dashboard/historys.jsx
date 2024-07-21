@@ -1,16 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Link from "@mui/material/Link";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import {
   Table,
   TableBody,
@@ -23,6 +20,7 @@ import {
 import Title from "./component/title";
 import CustomAppBar from "./component/appbar";
 import CustomDrawer from "./component/drawer";
+import axios from "axios";
 
 function Copyright(props) {
   return (
@@ -42,6 +40,7 @@ export default function Historys() {
   const [open, setOpen] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [data, setData] = useState([]);
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -56,21 +55,24 @@ export default function Historys() {
     setPage(0);
   };
 
-  // Data dummy
-  const subData = [
-    {
-      _id: "1",
-      name: "Item 1",
-      status: "Available",
-      serialNumber: "SN123456",
-    },
-    {
-      _id: "2",
-      name: "Item 2",
-      status: "Unavailable",
-      serialNumber: "SN789012",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/dashboard/history"
+        );
+        const fetchedData = Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
+        setData(fetchedData);
+        console.log(response.data);
+        console.log("Fetched Data:", fetchedData); // Log data yang di-fetch
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -92,7 +94,7 @@ export default function Historys() {
         >
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Title>Historys Data</Title>
+            <Title>History Data</Title>
             <Grid container spacing={3}>
               {/* Recent Orders */}
               <Grid item xs={12}>
@@ -111,18 +113,12 @@ export default function Historys() {
                             Name User
                           </TableCell>
                           <TableCell className="fw-bold text-center">
-                            Audio
-                          </TableCell>
-                          <TableCell className="fw-bold text-center">
                             Recognized Text
-                          </TableCell>
-                          <TableCell className="fw-bold text-center">
-                            Action
                           </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {subData
+                        {data
                           .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage
@@ -133,32 +129,10 @@ export default function Historys() {
                                 {index + 1}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.name}
+                                {row.id_user.name}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.status}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.serialNumber}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <IconButton
-                                  size="small"
-                                  variant="outlined"
-                                  className="me-2"
-                                  color="warning"
-                                  onClick={() => console.log("Edit", row)}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  variant="outlined"
-                                  color="error"
-                                  onClick={() => console.log("Delete", row)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
+                                {row.recognized_text}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -168,7 +142,7 @@ export default function Historys() {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={subData.length}
+                    count={data.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}

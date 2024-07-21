@@ -1,14 +1,11 @@
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema;
 
+
 const userSchema = new mongoose.Schema({
   id_user: {
     type: ObjectId,
     ref: "User",
-  },
-  id_audio: {
-    type: ObjectId,
-    ref: "Audio",
   },
   recognized_text: {
     type: String,

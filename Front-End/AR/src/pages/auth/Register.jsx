@@ -11,21 +11,18 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import useAuth from "../../../controller/auth";
 
-const Logins = (props) => {
+const Register = (props) => {
   const {
+    name,
+    setName,
     username,
     setUsername,
     password,
     setPassword,
     showPassword,
     handleCheckboxChange,
-    handleLogin,
-    checkAuth,
+    handleRegister,
   } = useAuth();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   return (
     <Container
@@ -52,9 +49,22 @@ const Logins = (props) => {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Sign Up
         </Typography>
-        <form style={{ width: "100%", marginTop: 1 }} onSubmit={handleLogin}>
+        <form style={{ width: "100%", marginTop: 1 }} onSubmit={handleRegister}>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="name"
+            label="name"
+            name="name"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
           <TextField
             variant="outlined"
             margin="normal"
@@ -97,12 +107,12 @@ const Logins = (props) => {
             color="primary"
             style={{ margin: "24px 0px 16px" }}
           >
-            Sign In
+            Sign Up
           </Button>
           <Grid container>
             <Grid item>
-              <Link href="/register" variant="body2">
-                {"Don't have an account? Sign Up"}
+              <Link href="/login" variant="body2">
+                {"Already Have Account? Sign In"}
               </Link>
             </Grid>
           </Grid>
@@ -119,4 +129,4 @@ const Logins = (props) => {
   );
 };
 
-export default Logins;
+export default Register;

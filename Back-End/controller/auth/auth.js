@@ -49,4 +49,32 @@ module.exports = {
   actionLogout: (req, res) => {
     res.clearCookie("token").json({ valid: false });
   },
+
+  actionRegister: async (req, res) => {
+    try {
+      const { username, password, name } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ msg: "Invalid Data" });
+      }
+
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ msg: "Username already exists" });
+      }
+
+      const newUser = new User({
+        name,
+        username,
+        password,
+        isAdmin: false, // Set isAdmin to false by default
+      });
+
+      await newUser.save();
+
+      res.json({ success: true, msg: "Registration Successful!" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Server Error" });
+    }
+  },
 };
