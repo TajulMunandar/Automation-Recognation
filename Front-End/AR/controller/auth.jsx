@@ -3,7 +3,6 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import Cookies from "js-cookie";
 
 const useAuth = () => {
   const [username, setUsername] = useState("");
@@ -32,7 +31,8 @@ const useAuth = () => {
           showConfirmButton: false,
           timer: 1500,
         });
-        if (res.data.isAdmin === 1) {
+        console.log(res.data.isAdmin);
+        if (res.data.isAdmin === true) {
           navigate("/dashboard");
         } else {
           navigate("/automation");
@@ -82,10 +82,10 @@ const useAuth = () => {
   const checkAuth = async () => {
     try {
       const res = await axios.get("http://localhost:3000/dashboard");
-      console.log(res.isAdmin);
-      if (res.isAdmin === true) {
+      console.log(res);
+      if (res.data.valid && res.data.isAdmin == true) {
         navigate("/dashboard");
-      } else if (res.isAdmin === false) {
+      } else if (res.data.valid && res.data.isAdmin == false) {
         navigate("/automation");
       } else {
         navigate("/login");
