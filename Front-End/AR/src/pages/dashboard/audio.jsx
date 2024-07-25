@@ -1,11 +1,9 @@
-import React, { useState } from "react";
-import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import React, { useState, useEffect } from "react";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
-import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
@@ -13,7 +11,9 @@ import Paper from "@mui/material/Paper";
 import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import Papa from "papaparse";
+import CircularProgress from "@mui/icons-material/Loop";
+import Alert from "@mui/material/Alert"; // Import Alert
 import {
   Table,
   TableBody,
@@ -28,7 +28,7 @@ import Title from "./component/title";
 import CustomAppBar from "./component/appbar";
 import CustomDrawer from "./component/drawer";
 import { Button, Form, Modal, ModalBody } from "react-bootstrap";
-import { Plus } from "react-bootstrap-icons";
+import { Gear } from "react-bootstrap-icons";
 import useAudio from "../../../controller/audio";
 
 function Copyright(props) {
@@ -49,6 +49,10 @@ export default function Audios() {
   const [open, setOpen] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(""); // State for success/error message
+  const [error, setError] = useState(false);
+  const [audioData, setAudioData] = useState([]);
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -103,17 +107,46 @@ export default function Audios() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
+    setMessage(""); // Reset message
+    setError(false); // Reset error status
 
-    const formData = new FormData();
-    formData.append("file", path); // Append the file to the form data
-    formData.append("transcription", transcription); // Append other form fields
+    try {
+      const response = await fetch("http://127.0.0.1:5000/train", {
+        method: "GET",
+      });
 
-    await addAudio(formData);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Success:", data);
+        setMessage(data.message);
+        // Handle success (e.g., show a success message, update state, etc.)
+      } else {
+        const data = await response.json();
+        console.error("Error:", data.error);
+        setMessage(data.error); // Set error message
+        setError(true);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessage("An unexpected error occurred."); // Set generic error message
+      setError(true); // Set error status
+    } finally {
+      setLoading(false); // Set loading to false when request finishes
+    }
   };
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/api/get-audio-data")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setAudioData(data);
+      });
+  }, []);
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
         <CustomAppBar open={open} toggleDrawer={toggleDrawer} />;
@@ -135,11 +168,26 @@ export default function Audios() {
             <Title>Audios Data</Title>
             <Button
               variant="primary"
-              className="mb-2 "
-              onClick={() => handleAddClick()}
+              className="mb-2"
+              onClick={handleSubmit}
+              disabled={loading} // Disable button when loading
             >
-              <Plus className="fs-3"></Plus>Audio
+              {loading ? (
+                <>
+                  <CircularProgress size={24} /> Progress...
+                </>
+              ) : (
+                <>
+                  <Gear className="fs-5 me-2" />
+                  Train Model
+                </>
+              )}
             </Button>
+            {message && (
+              <Alert severity={error ? "error" : "success"} className="mb-3">
+                {message}
+              </Alert> // Show message
+            )}
             <Grid container spacing={3}>
               {/* Recent Orders */}
               <Grid item xs={12}>
@@ -160,13 +208,10 @@ export default function Audios() {
                           <TableCell className="fw-bold text-center">
                             Transcription
                           </TableCell>
-                          <TableCell className="fw-bold text-center">
-                            Action
-                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {audio
+                        {audioData
                           .slice(
                             page * rowsPerPage,
                             page * rowsPerPage + rowsPerPage
@@ -177,29 +222,10 @@ export default function Audios() {
                                 {index + 1}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.path}
+                                {row.audio_path}
                               </TableCell>
                               <TableCell className="text-center">
-                                {row.transcription}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <IconButton
-                                  size="small"
-                                  variant="outlined"
-                                  className="me-2"
-                                  color="warning"
-                                  onClick={() => handleEditClick(row)}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  variant="outlined"
-                                  color="error"
-                                  onClick={() => handleDeleteClick(row)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
+                                {row.transcript}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -209,7 +235,7 @@ export default function Audios() {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={audio.length}
+                    count={audioData.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
@@ -222,118 +248,6 @@ export default function Audios() {
           </Container>
         </Box>
       </Box>
-      {/* Modal Edit */}
-      <Modal
-        show={isEditModalOpen}
-        onHide={() => setIsEditModalOpen(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Audio</Modal.Title>
-        </Modal.Header>
-        <ModalBody>
-          <Form onSubmit={updateAudio}>
-            <Form.Group className="mb-3" controlId="formFIle">
-              <Form.Label>Audio</Form.Label>
-              <Form.Control
-                type="file"
-                value={editedPath}
-                onChange={(e) => setEditedPath(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicPassword">
-              <Form.Label>Transcription</Form.Label>
-              <Form.Control
-                type="name"
-                placeholder="...."
-                value={editedTranscription}
-                onChange={(e) => setEditedTranscription(e.target.value)}
-              />
-            </Form.Group>
-          </Form>
-        </ModalBody>2
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>
-            Close
-          </Button>
-          <Button variant="warning" onClick={updateAudio}>
-            Edit
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      {/* End Modal Edit */}
-      {/* Modal Hapus */}
-      <Modal
-        show={isDeleteModalOpen}
-        onHide={() => setIsDeleteModalOpen(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Delete Audio</Modal.Title>
-        </Modal.Header>
-        <ModalBody>
-          <p>
-            Are you sure you want to delete {selectedAudio?.path} -{" "}
-            {selectedAudio?.transcription}?
-          </p>
-        </ModalBody>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setIsDeleteModalOpen(false)}
-          >
-            Close
-          </Button>
-          <Button variant="danger" onClick={deleteAudio}>
-            Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      {/* End Modal Hapus */}
-
-      {/* Modal Tambah */}
-      <Modal
-        show={isAddModalOpen}
-        onHide={() => setIsAddModalOpen(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Add Audio</Modal.Title>
-        </Modal.Header>
-        <ModalBody>
-          <Form>
-            <Form.Group className="mb-3" controlId="formFIle">
-              <Form.Label>Audio</Form.Label>
-              <Form.Control
-                type="file"
-                name="path"
-                onChange={(e) => setPath(e.target.files[0])}
-                placeholder="path"
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicPassword">
-              <Form.Label>Transcription</Form.Label>
-              <Form.Control
-                type="name"
-                name="transcription"
-                value={transcription}
-                placeholder="Transcription"
-                onChange={(e) => setTranscription(e.target.value)}
-              />
-            </Form.Group>
-          </Form>
-        </ModalBody>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            Add
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </ThemeProvider>
   );
 }

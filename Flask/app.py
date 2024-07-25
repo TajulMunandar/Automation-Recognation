@@ -108,6 +108,13 @@ le.fit(labels)
 ANOMALY_THRESHOLD = 0.5
 
 
+@app.route("/api/data", methods=["GET"])
+def get_audio_data():
+    csv_file_path = "./content/suara.csv"  # Path ke file CSV
+    df = pd.read_csv(csv_file_path)
+    data = df.to_dict(orient="records")
+    return jsonify(data)
+
 # Endpoint to start training process
 @app.route("/train", methods=["GET"])
 def train_model():
